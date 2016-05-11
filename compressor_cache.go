@@ -18,6 +18,7 @@ type BoundedCachedCompressors struct {
 	zlibWriters     chan *zlib.Writer
 	writersCapacity int
 	readersCapacity int
+	Stats           CompressorCacheStats
 }
 
 // NewBoundedCachedCompressors returns a new, with filled cache,  BoundedCachedCompressors.
@@ -36,6 +37,7 @@ func NewBoundedCachedCompressors(writersCapacity, readersCapacity int) *BoundedC
 	for ix := 0; ix < readersCapacity; ix++ {
 		b.gzipReaders <- newGzipReader()
 	}
+	b.Stats = CompressorCacheStats{}
 	return b
 }
 
@@ -44,8 +46,9 @@ func (b *BoundedCachedCompressors) AcquireGzipWriter() *gzip.Writer {
 	var writer *gzip.Writer
 	select {
 	case writer, _ = <-b.gzipWriters:
+		b.Stats.HitGzipWriter(true)
 	default:
-		// return a new unmanaged one
+		b.Stats.HitGzipWriter(false)
 		writer = newGzipWriter()
 	}
 	return writer
@@ -65,8 +68,10 @@ func (b *BoundedCachedCompressors) AcquireGzipReader() *gzip.Reader {
 	var reader *gzip.Reader
 	select {
 	case reader, _ = <-b.gzipReaders:
+		b.Stats.HitGzipReader(true)
 	default:
 		// return a new unmanaged one
+		b.Stats.HitGzipReader(false)
 		reader = newGzipReader()
 	}
 	return reader
@@ -86,8 +91,10 @@ func (b *BoundedCachedCompressors) AcquireZlibWriter() *zlib.Writer {
 	var writer *zlib.Writer
 	select {
 	case writer, _ = <-b.zlibWriters:
+		b.Stats.HitZlibWriter(true)
 	default:
 		// return a new unmanaged one
+		b.Stats.HitZlibWriter(false)
 		writer = newZlibWriter()
 	}
 	return writer
