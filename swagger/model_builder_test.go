@@ -1,7 +1,6 @@
 package swagger
 
 import (
-	"net"
 	"testing"
 	"time"
 )
@@ -36,59 +35,6 @@ func TestRef_Issue190(t *testing.T) {
    }
   }
  }`)
-}
-
-func TestWithoutAdditionalFormat(t *testing.T) {
-	type mytime struct {
-		time.Time
-	}
-	type usemytime struct {
-		t mytime
-	}
-	testJsonFromStruct(t, usemytime{}, `{
-  "swagger.usemytime": {
-   "id": "swagger.usemytime",
-   "required": [
-    "t"
-   ],
-   "properties": {
-    "t": {
-     "type": "string"
-    }
-   }
-  }
- }`)
-}
-
-func TestWithAdditionalFormat(t *testing.T) {
-	type mytime struct {
-		time.Time
-	}
-	type usemytime struct {
-		t mytime
-	}
-	testJsonFromStructWithConfig(t, usemytime{}, `{
-  "swagger.usemytime": {
-   "id": "swagger.usemytime",
-   "required": [
-    "t"
-   ],
-   "properties": {
-    "t": {
-     "type": "string",
-     "format": "date-time"
-    }
-   }
-  }
- }`, &Config {
- 	SchemaFormatHandler: func(typeName string) string {
-		switch typeName {
-		case "swagger.mytime":
-			return "date-time"
-		}
-		return ""
- 	},
- })
 }
 
 // clear && go test -v -test.run TestCustomMarshaller_Issue96 ...swagger
@@ -856,10 +802,10 @@ type Region struct {
 // clear && go test -v -test.run TestRegion_Issue113 ...swagger
 func TestRegion_Issue113(t *testing.T) {
 	testJsonFromStruct(t, []Region{}, `{
-  "||swagger.Region": {
-   "id": "||swagger.Region",
+  "integer": {
+   "id": "integer",
    "properties": {}
-  },		
+  },
   "swagger.Region": {
    "id": "swagger.Region",
    "required": [
@@ -871,7 +817,7 @@ func TestRegion_Issue113(t *testing.T) {
     "id": {
      "type": "array",
      "items": {
-      "type": "integer"
+      "$ref": "integer"
      }
     },
     "name": {
@@ -881,6 +827,10 @@ func TestRegion_Issue113(t *testing.T) {
      "type": "string"
     }
    }
+  },
+  "||swagger.Region": {
+   "id": "||swagger.Region",
+   "properties": {}
   }
  }`)
 }
@@ -1158,34 +1108,4 @@ func TestNestedStructDescription(t *testing.T) {
  }
 `
 	testJsonFromStruct(t, A{}, expected)
-}
-
-// This tests a primitive with type overrides in the struct tags
-type FakeInt int
-type E struct {
-	Id FakeInt `type:"integer"`
-	IP net.IP  `type:"string"`
-}
-
-func TestOverridenTypeTagE1(t *testing.T) {
-	expected := `
-{
-  "swagger.E": {
-   "id": "swagger.E",
-   "required": [
-    "Id",
-    "IP"
-   ],
-   "properties": {
-    "Id": {
-     "type": "integer"
-    },
-    "IP": {
-     "type": "string"
-    }
-   }
-  }
- }
-`
-	testJsonFromStruct(t, E{}, expected)
 }

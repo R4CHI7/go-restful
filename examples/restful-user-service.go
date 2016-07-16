@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
+	"github.com/blivetlabs/go-restful"
+	"github.com/blivetlabs/go-restful/swagger"
 )
 
 // This example is functionally the same as the example in restful-user-resource.go
@@ -102,7 +102,8 @@ func (u *UserService) createUser(request *restful.Request, response *restful.Res
 	err := request.ReadEntity(&usr)
 	if err == nil {
 		u.users[usr.Id] = usr
-		response.WriteHeaderAndEntity(http.StatusCreated, usr)
+		response.WriteHeader(http.StatusCreated)
+		response.WriteEntity(usr)
 	} else {
 		response.WriteError(http.StatusInternalServerError, err)
 	}

@@ -9,46 +9,25 @@ import (
 	"testing"
 )
 
-func testJsonFromStructWithConfig(t *testing.T, sample interface{}, expectedJson string, config *Config) bool {
-	m := modelsFromStructWithConfig(sample, config)
+func testJsonFromStruct(t *testing.T, sample interface{}, expectedJson string) bool {
+	m := modelsFromStruct(sample)
 	data, _ := json.MarshalIndent(m, " ", " ")
 	return compareJson(t, string(data), expectedJson)
 }
 
-func modelsFromStructWithConfig(sample interface{}, config *Config) *ModelList {
+func modelsFromStruct(sample interface{}) *ModelList {
 	models := new(ModelList)
-	builder := modelBuilder{Models: models, Config: config}
+	builder := modelBuilder{models}
 	builder.addModelFrom(sample)
 	return models
 }
 
-func testJsonFromStruct(t *testing.T, sample interface{}, expectedJson string) bool {
-	return testJsonFromStructWithConfig(t, sample, expectedJson, &Config{})
-}
-
-func modelsFromStruct(sample interface{}) *ModelList {
-	return modelsFromStructWithConfig(sample, &Config{})
-}
-
 func compareJson(t *testing.T, actualJsonAsString string, expectedJsonAsString string) bool {
-	success := false
 	var actualMap map[string]interface{}
 	json.Unmarshal([]byte(actualJsonAsString), &actualMap)
 	var expectedMap map[string]interface{}
-	err := json.Unmarshal([]byte(expectedJsonAsString), &expectedMap)
-	if err != nil {
-		var actualArray []interface{}
-		json.Unmarshal([]byte(actualJsonAsString), &actualArray)
-		var expectedArray []interface{}
-		err := json.Unmarshal([]byte(expectedJsonAsString), &expectedArray)
-		success = reflect.DeepEqual(actualArray, expectedArray)
-		if err != nil {
-			t.Fatalf("Unparsable expected JSON: %s", err)
-		}
-	} else {
-		success = reflect.DeepEqual(actualMap, expectedMap)
-	}
-	if !success {
+	json.Unmarshal([]byte(expectedJsonAsString), &expectedMap)
+	if !reflect.DeepEqual(actualMap, expectedMap) {
 		t.Log("---- expected -----")
 		t.Log(withLineNumbers(expectedJsonAsString))
 		t.Log("---- actual -----")

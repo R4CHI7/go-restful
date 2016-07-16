@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/emicklei/go-restful/log"
+	"github.com/blivetlabs/go-restful/log"
 )
 
 // RouteBuilder is a helper to construct Routes.
@@ -128,7 +128,7 @@ func (b *RouteBuilder) Param(parameter *Parameter) *RouteBuilder {
 	return b
 }
 
-// Operation allows you to document what the actual method/function call is of the Route.
+// Operation allows you to document what the acutal method/function call is of the Route.
 // Unless called, the operation name is derived from the RouteFunction set using To(..).
 func (b *RouteBuilder) Operation(name string) *RouteBuilder {
 	b.operation = name

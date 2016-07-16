@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/emicklei/go-restful"
+	"github.com/blivetlabs/go-restful"
 )
 
 // Cross-origin resource sharing (CORS) is a mechanism that allows JavaScript on a web page
@@ -53,8 +53,7 @@ func main() {
 	// Add container filter to enable CORS
 	cors := restful.CrossOriginResourceSharing{
 		ExposeHeaders:  []string{"X-My-Header"},
-		AllowedHeaders: []string{"Content-Type", "Accept"},
-		AllowedMethods: []string{"GET", "POST"},
+		AllowedHeaders: []string{"Content-Type"},
 		CookiesAllowed: false,
 		Container:      wsContainer}
 	wsContainer.Filter(cors.Filter)

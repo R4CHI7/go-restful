@@ -6,9 +6,14 @@ package restful
 
 import (
 	"bytes"
-	"compress/zlib"
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strings"
 )
 
 var defaultRequestContentType string
@@ -22,6 +27,7 @@ type Request struct {
 	pathParameters    map[string]string
 	attributes        map[string]interface{} // for storing request-scoped values
 	selectedRoutePath string                 // root path + route path that matched the request, e.g. /meetings/{id}/attendees
+	UserId            int
 }
 
 func NewRequest(httpRequest *http.Request) *Request {
@@ -76,43 +82,58 @@ func (r *Request) HeaderParameter(name string) string {
 	return r.Request.Header.Get(name)
 }
 
-// ReadEntity checks the Accept header and reads the content into the entityPointer.
+// ReadEntity checks the Accept header and reads the content into the entityPointer
+// May be called multiple times in the request-response flow
 func (r *Request) ReadEntity(entityPointer interface{}) (err error) {
 	contentType := r.Request.Header.Get(HEADER_ContentType)
-	contentEncoding := r.Request.Header.Get(HEADER_ContentEncoding)
-
-	// OLD feature, cache the body for reads
 	if doCacheReadEntityBytes {
-		if r.bodyContent == nil {
-			data, err := ioutil.ReadAll(r.Request.Body)
-			if err != nil {
-				return err
-			}
-			r.bodyContent = &data
-		}
-		r.Request.Body = ioutil.NopCloser(bytes.NewReader(*r.bodyContent))
+		return r.cachingReadEntity(contentType, entityPointer)
 	}
+	// unmarshall directly from request Body
+	return r.decodeEntity(r.Request.Body, contentType, entityPointer)
+}
 
-	// check if the request body needs decompression
-	if ENCODING_GZIP == contentEncoding {
-		gzipReader := currentCompressorProvider.AcquireGzipReader()
-		defer currentCompressorProvider.ReleaseGzipReader(gzipReader)
-		gzipReader.Reset(r.Request.Body)
-		r.Request.Body = gzipReader
-	} else if ENCODING_DEFLATE == contentEncoding {
-		zlibReader, err := zlib.NewReader(r.Request.Body)
+func (r *Request) cachingReadEntity(contentType string, entityPointer interface{}) (err error) {
+	var buffer []byte
+	if r.bodyContent != nil {
+		buffer = *r.bodyContent
+	} else {
+		buffer, err = ioutil.ReadAll(r.Request.Body)
 		if err != nil {
 			return err
 		}
-		r.Request.Body = zlibReader
+		r.bodyContent = &buffer
+	}
+	return r.decodeEntity(bytes.NewReader(buffer), contentType, entityPointer)
+}
+
+func (r *Request) decodeEntity(reader io.Reader, contentType string, entityPointer interface{}) (err error) {
+	if strings.Contains(contentType, MIME_XML) {
+		err := xml.NewDecoder(reader).Decode(entityPointer)
+		if err != nil {
+			return err
+		}
+		return Validate(entityPointer)
+	}
+	if strings.Contains(contentType, MIME_JSON) || MIME_JSON == defaultRequestContentType {
+		decoder := json.NewDecoder(reader)
+		decoder.UseNumber()
+		err := decoder.Decode(entityPointer)
+		if err != nil {
+			return err
+		}
+
+		return Validate(entityPointer)
+	}
+	if MIME_XML == defaultRequestContentType {
+		err := xml.NewDecoder(reader).Decode(entityPointer)
+		if err != nil {
+			return err
+		}
+		return Validate(entityPointer)
 	}
 
-	// lookup the EntityReader
-	entityReader, ok := entityAccessRegistry.accessorAt(contentType)
-	if !ok {
-		return NewError(http.StatusBadRequest, "Unable to unmarshal content of type:"+contentType)
-	}
-	return entityReader.Read(r, entityPointer)
+	return NewError(400, "Unable to unmarshal content of type:"+contentType)
 }
 
 // SetAttribute adds or replaces the attribute with the given value.
@@ -128,4 +149,56 @@ func (r Request) Attribute(name string) interface{} {
 // SelectedRoutePath root path + route path that matched the request, e.g. /meetings/{id}/attendees
 func (r Request) SelectedRoutePath() string {
 	return r.selectedRoutePath
+}
+
+// Validate input based upon binding tag of struct
+func Validate(obj interface{}, parents ...string) error {
+	typ := reflect.TypeOf(obj)
+	val := reflect.ValueOf(obj)
+
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+		val = val.Elem()
+	}
+
+	switch typ.Kind() {
+	case reflect.Struct:
+		for i := 0; i < typ.NumField(); i++ {
+			field := typ.Field(i)
+
+			fieldValue := val.Field(i).Interface()
+			zero := reflect.Zero(field.Type).Interface()
+
+			if strings.Index(field.Tag.Get("binding"), "required") > -1 {
+				fieldType := field.Type.Kind()
+				if fieldType == reflect.Struct {
+					if reflect.DeepEqual(zero, fieldValue) {
+						return errors.New("Required " + field.Tag.Get("json"))
+					}
+				} else if reflect.DeepEqual(zero, fieldValue) {
+					if len(parents) > 0 {
+						return errors.New("Required " + field.Tag.Get("json") + " on " + parents[0])
+					} else {
+						return errors.New("Required " + field.Tag.Get("json"))
+					}
+				} else if fieldType == reflect.Slice && field.Type.Elem().Kind() == reflect.Struct {
+					err := Validate(fieldValue)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	case reflect.Slice:
+		for i := 0; i < val.Len(); i++ {
+			fieldValue := val.Index(i).Interface()
+			err := Validate(fieldValue)
+			if err != nil {
+				return err
+			}
+		}
+	default:
+		return nil
+	}
+	return nil
 }

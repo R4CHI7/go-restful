@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/user"
+	"appengine"
+	"appengine/datastore"
+	"appengine/user"
+	"github.com/blivetlabs/go-restful"
+	"github.com/blivetlabs/go-restful/swagger"
 	"net/http"
 	"time"
 )
