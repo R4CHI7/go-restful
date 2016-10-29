@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/blivetlabs/go-restful"
-	"github.com/blivetlabs/go-restful/swagger"
+	"github.com/r4chi7/go-restful"
+	"github.com/r4chi7/go-restful/swagger"
 )
 
 // This example show a complete (GET,PUT,POST,DELETE) conventional example of

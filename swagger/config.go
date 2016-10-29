@@ -3,7 +3,7 @@ package swagger
 import (
 	"net/http"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 )
 
 // PostBuildDeclarationMapFunc can be used to modify the api declaration map.

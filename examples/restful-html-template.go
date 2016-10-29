@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 )
 
 // This example shows how to serve a HTML page using the standard Go template engine.

@@ -3,14 +3,14 @@ package swagger
 import (
 	"fmt"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 	// "gitlab.com/ridely/hopwatch"
 	"net/http"
 	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/blivetlabs/go-restful/log"
+	"github.com/r4chi7/go-restful/log"
 )
 
 type SwaggerService struct {

@@ -3,7 +3,7 @@ package swagger
 import (
 	"testing"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 )
 
 // go test -v -test.run TestThatMultiplePathsOnRootAreHandled ...swagger

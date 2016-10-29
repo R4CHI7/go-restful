@@ -3,7 +3,7 @@ package restful
 import (
 	"os"
 
-	"github.com/blivetlabs/go-restful/log"
+	"github.com/r4chi7/go-restful/log"
 )
 
 // Copyright 2013 Ernest Micklei. All rights reserved.

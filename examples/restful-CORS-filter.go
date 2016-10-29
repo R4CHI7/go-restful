@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 )
 
 // Cross-origin resource sharing (CORS) is a mechanism that allows JavaScript on a web page

@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/blivetlabs/go-restful"
-	"github.com/blivetlabs/go-restful/swagger"
+	"github.com/r4chi7/go-restful"
+	"github.com/r4chi7/go-restful/swagger"
 )
 
 // This example is functionally the same as the example in restful-user-resource.go

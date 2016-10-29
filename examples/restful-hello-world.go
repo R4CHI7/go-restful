@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 	"io"
 	"net/http"
 )

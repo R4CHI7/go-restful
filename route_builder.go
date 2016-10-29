@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/blivetlabs/go-restful/log"
+	"github.com/r4chi7/go-restful/log"
 )
 
 // RouteBuilder is a helper to construct Routes.

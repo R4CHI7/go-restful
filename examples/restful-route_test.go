@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/blivetlabs/go-restful"
+	"github.com/r4chi7/go-restful"
 )
 
 // This example shows how to define methods that serve static files

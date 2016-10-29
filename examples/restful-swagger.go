@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/blivetlabs/go-restful"
-	"github.com/blivetlabs/go-restful/swagger"
+	"github.com/r4chi7/go-restful"
+	"github.com/r4chi7/go-restful/swagger"
 )
 
 type Book struct {
